@@ -1,0 +1,534 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#070806">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- Top bar -->
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/header_bg"
+            android:orientation="vertical"
+            android:paddingLeft="18dp"
+            android:paddingRight="18dp"
+            android:paddingTop="14dp"
+            android:paddingBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
+                            android:text="AETHER"
+                            android:textColor="#F4F0E4"
+                            android:textSize="20sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="@drawable/chip_amber"
+                            android:fontFamily="monospace"
+                            android:paddingLeft="7dp"
+                            android:paddingTop="2dp"
+                            android:paddingRight="7dp"
+                            android:paddingBottom="2dp"
+                            android:text="LINK"
+                            android:textColor="#F0A202"
+                            android:textSize="10sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/probe_state"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:fontFamily="monospace"
+                        android:text="PROBE IDLE · CLEAN"
+                        android:textColor="#8F8774"
+                        android:textSize="11sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="end"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/path"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="—"
+                        android:textColor="#F0A202"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/rtt"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="RTT —"
+                        android:textColor="#8F8774"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ProgressBar
+                    android:id="@+id/trust_bar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="0dp"
+                    android:layout_height="5dp"
+                    android:layout_weight="1"
+                    android:indeterminate="false"
+                    android:max="100"
+                    android:progress="92"
+                    android:progressBackgroundTint="#2E2B22"
+                    android:progressTint="#3ECF8E" />
+
+                <TextView
+                    android:id="@+id/trust_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:fontFamily="monospace"
+                    android:text="TRUST 92%"
+                    android:textColor="#8F8774"
+                    android:textSize="11sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Tab strip -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:background="#0C0B09"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tab_drive"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:letterSpacing="0.08"
+                android:text="DRIVE"
+                android:textColor="#F0A202"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tab_bus"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:letterSpacing="0.08"
+                android:text="BUS"
+                android:textColor="#8F8774"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#2E2B22" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1">
+
+            <!-- DRIVE PAGE -->
+            <ScrollView
+                android:id="@+id/page_drive"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <LinearLayout
+                        android:id="@+id/speed_panel"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="@drawable/hud_panel"
+                        android:orientation="vertical"
+                        android:padding="18dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:letterSpacing="0.14"
+                                android:text="SPEED · GPS"
+                                android:textColor="#8F8774"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/live_badge"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="monospace"
+                                android:text="IDLE"
+                                android:textColor="#8F8774"
+                                android:textSize="11sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <FrameLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="280dp"
+                            android:layout_marginTop="4dp">
+
+                            <global.nscb.aether.GlSpeedCluster
+                                android:id="@+id/speed_gauge"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent" />
+
+                            <TextView
+                                android:id="@+id/speed"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:gravity="center"
+                                android:fontFamily="monospace"
+                                android:text="0"
+                                android:textColor="#F7F2E6"
+                                android:textSize="56sp"
+                                android:textStyle="bold"
+                                android:shadowColor="#F0A202"
+                                android:shadowDx="0"
+                                android:shadowDy="0"
+                                android:shadowRadius="12" />
+
+                            <TextView
+                                android:id="@+id/speed_unit"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_gravity="center"
+                                android:layout_marginTop="48dp"
+                                android:gravity="center"
+                                android:fontFamily="monospace"
+                                android:text="MPH · LIVE"
+                                android:textColor="#F0A202"
+                                android:textSize="12sp" />
+                        </FrameLayout>
+
+                        <TextView
+                            android:id="@+id/fix"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            android:fontFamily="monospace"
+                            android:text="GPS off"
+                            android:textColor="#F4F0E4"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="horizontal"
+                        android:baselineAligned="false">
+
+                        <global.nscb.aether.IntegrityRingView
+                            android:id="@+id/integrity_ring"
+                            android:layout_width="0dp"
+                            android:layout_height="120dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/hud_panel" />
+
+                        <global.nscb.aether.PathArcView
+                            android:id="@+id/path_arc"
+                            android:layout_width="0dp"
+                            android:layout_height="120dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/hud_panel" />
+
+                        <global.nscb.aether.RadarView
+                            android:id="@+id/radar"
+                            android:layout_width="0dp"
+                            android:layout_height="120dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:background="@drawable/hud_panel" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/integrity"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/hud_panel"
+                        android:fontFamily="monospace"
+                        android:padding="14dp"
+                        android:text="INTEGRITY · CLEAN"
+                        android:textColor="#3ECF8E"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/sat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:fontFamily="monospace"
+                        android:text="satellite —"
+                        android:textColor="#8F8774"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/detail"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="monospace"
+                        android:minHeight="18dp"
+                        android:text=""
+                        android:textColor="#E0452A"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/alert_banner"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/hud_panel"
+                        android:fontFamily="monospace"
+                        android:padding="12dp"
+                        android:text=""
+                        android:textColor="#E8B84A"
+                        android:textSize="12sp"
+                        android:visibility="gone" />
+
+                    <Button
+                        android:id="@+id/start"
+                        android:layout_width="match_parent"
+                        android:layout_height="54dp"
+                        android:layout_marginTop="18dp"
+                        android:background="@drawable/btn_amber"
+                        android:text="Start measuring"
+                        android:textAllCaps="false"
+                        android:textColor="#1C1404"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/maps"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/btn_ghost"
+                        android:text="Open Maps · live traffic"
+                        android:textAllCaps="false"
+                        android:textColor="#F0A202" />
+
+                    <Button
+                        android:id="@+id/throughput"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/btn_ghost"
+                        android:text="Measure throughput"
+                        android:textAllCaps="false"
+                        android:textColor="#F0A202" />
+
+                    <Button
+                        android:id="@+id/hotspot"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/btn_ghost"
+                        android:text="Open hotspot settings"
+                        android:textAllCaps="false"
+                        android:textColor="#F4F0E4" />
+
+                    <Button
+                        android:id="@+id/auto"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/btn_ghost"
+                        android:text="Open Android Auto"
+                        android:textAllCaps="false"
+                        android:textColor="#F4F0E4" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/limits"
+                        android:textColor="#5A5448"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </ScrollView>
+
+            <!-- BUS PAGE -->
+            <ScrollView
+                android:id="@+id/page_bus"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:fillViewport="true"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.1"
+                        android:text="OBD · TOPDON / ELM BLE"
+                        android:textColor="#8F8774"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/obd_status"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:fontFamily="monospace"
+                        android:text="Not connected"
+                        android:textColor="#F4F0E4"
+                        android:textSize="14sp" />
+
+                    <Button
+                        android:id="@+id/obd_connect"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="14dp"
+                        android:background="@drawable/btn_amber"
+                        android:text="Scan &amp; connect BLE OBD"
+                        android:textAllCaps="false"
+                        android:textColor="#1C1404"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/obd_disconnect"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="10dp"
+                        android:background="@drawable/btn_ghost"
+                        android:text="Disconnect OBD"
+                        android:textAllCaps="false"
+                        android:textColor="#F4F0E4" />
+
+                    <TextView
+                        android:id="@+id/obd_vin"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:background="@drawable/hud_panel"
+                        android:fontFamily="monospace"
+                        android:padding="12dp"
+                        android:text="VIN —"
+                        android:textColor="#F0A202"
+                        android:textSize="14sp" />
+
+                    <GridLayout
+                        android:id="@+id/obd_grid"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:alignmentMode="alignMargins"
+                        android:columnCount="2"
+                        android:useDefaultMargins="true">
+
+                        <TextView android:id="@+id/obd_rpm" style="@style/ObdCell" android:text="RPM\n—" />
+                        <TextView android:id="@+id/obd_kph" style="@style/ObdCell" android:text="SPEED\n—" />
+                        <TextView android:id="@+id/obd_coolant" style="@style/ObdCell" android:text="COOLANT\n—" />
+                        <TextView android:id="@+id/obd_load" style="@style/ObdCell" android:text="LOAD\n—" />
+                        <TextView android:id="@+id/obd_throttle" style="@style/ObdCell" android:text="THROTTLE\n—" />
+                        <TextView android:id="@+id/obd_volts" style="@style/ObdCell" android:text="MODULE V\n—" />
+                        <TextView android:id="@+id/obd_iat" style="@style/ObdCell" android:text="IAT\n—" />
+                        <TextView android:id="@+id/obd_map" style="@style/ObdCell" android:text="MAP\n—" />
+                    </GridLayout>
+
+                    <TextView
+                        android:id="@+id/obd_dtcs"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/hud_panel"
+                        android:fontFamily="monospace"
+                        android:padding="12dp"
+                        android:text="DTCs —"
+                        android:textColor="#F4F0E4"
+                        android:textSize="12sp" />
+
+                    <TextView
+                        android:id="@+id/obd_log"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/hud_panel"
+                        android:fontFamily="monospace"
+                        android:minHeight="120dp"
+                        android:padding="12dp"
+                        android:text="Adapter log empty"
+                        android:textColor="#8F8774"
+                        android:textSize="11sp" />
+                </LinearLayout>
+            </ScrollView>
+        </FrameLayout>
+    </LinearLayout>
+
+    <global.nscb.aether.HudOverlayView
+        android:id="@+id/hud_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
+</FrameLayout>

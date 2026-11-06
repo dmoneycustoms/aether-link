@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Aether" parent="Theme.AppCompat.NoActionBar">
+        <item name="android:statusBarColor">#070806</item>
+        <item name="android:navigationBarColor">#070806</item>
+        <item name="android:windowBackground">#070806</item>
+        <item name="colorAccent">#F0A202</item>
+        <item name="colorPrimary">#F0A202</item>
+        <item name="android:textColor">#F4F0E4</item>
+    </style>
+    <style name="ObdCell">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:background">@drawable/hud_panel</item>
+        <item name="android:fontFamily">monospace</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:textColor">#F4F0E4</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+</resources>
