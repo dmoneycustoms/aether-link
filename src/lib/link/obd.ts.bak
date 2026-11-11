@@ -1,0 +1,213 @@
+export type ObdReading = {
+  rpm: number | null;
+  kph: number | null;
+  coolantC: number | null;
+  throttlePct: number | null;
+  volts: number | null;
+  loadPct: number | null;
+};
+
+const OPTIONAL = [
+  "0000fff0-0000-1000-8000-00805f9b34fb",
+  "0000ffe0-0000-1000-8000-00805f9b34fb",
+  "000018f0-0000-1000-8000-00805f9b34fb",
+];
+
+const CYCLE = ["010C", "010D", "0105", "0111", "0142", "0104"] as const;
+
+function hexBytes(response: string, pid: string): number[] | null {
+  const compact = response.replace(/[^0-9A-Fa-f]/g, "").toUpperCase();
+  const key = `41${pid.slice(2)}`;
+  const at = compact.indexOf(key);
+  if (at < 0) return null;
+  const rest = compact.slice(at + key.length);
+  const out: number[] = [];
+  for (let i = 0; i + 1 < rest.length && out.length < 4; i += 2) {
+    const n = Number.parseInt(rest.slice(i, i + 2), 16);
+    if (Number.isNaN(n)) break;
+    out.push(n);
+  }
+  return out;
+}
+
+export function parsePid(cmd: string, response: string): Partial<ObdReading> | null {
+  const upper = response.toUpperCase();
+  if (upper.includes("NO DATA") || upper.includes("UNABLE") || upper.includes("ERROR") || upper.includes("?")) {
+    return null;
+  }
+  const bytes = hexBytes(response, cmd);
+  if (!bytes || bytes.length < 1) return null;
+  const a = bytes[0] ?? 0;
+  const b = bytes[1] ?? 0;
+  switch (cmd) {
+    case "010C":
+      return bytes.length >= 2 ? { rpm: (a * 256 + b) / 4 } : null;
+    case "010D":
+      return { kph: a };
+    case "0105":
+      return { coolantC: a - 40 };
+    case "0111":
+      return { throttlePct: (a * 100) / 255 };
+    case "0142":
+      return bytes.length >= 2 ? { volts: (a * 256 + b) / 1000 } : null;
+    case "0104":
+      return { loadPct: (a * 100) / 255 };
+    default:
+      return null;
+  }
+}
+
+export type ObdSession = {
+  name: string;
+  close: () => void;
+  loop: (
+    onReading: (reading: Partial<ObdReading>) => void,
+    onLog: (line: string) => void,
+  ) => Promise<void>;
+};
+
+export async function connectObd(): Promise<ObdSession> {
+  const bluetooth = navigator.bluetooth;
+  if (!bluetooth) {
+    throw new Error("This browser has no Bluetooth API. Chrome on Android does. iPhone does not.");
+  }
+  const device = await bluetooth.requestDevice({
+    acceptAllDevices: true,
+    optionalServices: OPTIONAL,
+  });
+  const server = device.gatt;
+  if (!server) throw new Error("This device has no GATT server.");
+  const connected = await server.connect();
+  const services = await connected.getPrimaryServices();
+  let writeChar: BluetoothRemoteGATTCharacteristic | null = null;
+  let notifyChar: BluetoothRemoteGATTCharacteristic | null = null;
+  const seen: string[] = [];
+  for (const service of services) {
+    seen.push(service.uuid);
+    const chars = await service.getCharacteristics();
+    for (const c of chars) {
+      if ((c.properties.notify || c.properties.indicate) && !notifyChar) notifyChar = c;
+      if ((c.properties.write || c.properties.writeWithoutResponse) && !writeChar) writeChar = c;
+    }
+  }
+  if (!writeChar || !notifyChar) {
+    device.gatt?.disconnect();
+    throw new Error(
+      `Connected to ${device.name ?? "device"}, but it is not a BLE serial adapter. Classic Bluetooth OBD dongles cannot be opened from Chrome. Services: ${seen.join(", ") || "none"}.`,
+    );
+  }
+
+  let stopped = false;
+  let buffer = "";
+  const waiters: Array<(msg: string) => void> = [];
+  const decoder = new TextDecoder();
+
+  const onValue = (event: Event) => {
+    const target = event.target as BluetoothRemoteGATTCharacteristic;
+    const value = target.value;
+    if (!value) return;
+    buffer += decoder.decode(value);
+    while (buffer.includes(">")) {
+      const idx = buffer.indexOf(">");
+      const msg = buffer.slice(0, idx).replace(/\r/g, "\n").trim();
+      buffer = buffer.slice(idx + 1);
+      const waiter = waiters.shift();
+      if (waiter) waiter(msg);
+    }
+  };
+
+  notifyChar.addEventListener("characteristicvaluechanged", onValue);
+  await notifyChar.startNotifications();
+
+  const write = writeChar;
+  let chain: Promise<void> = Promise.resolve();
+
+  const command = (text: string, timeoutMs: number) => {
+    const run = chain.then(
+      () =>
+        new Promise<string>((resolve, reject) => {
+          if (stopped) {
+            reject(new Error("closed"));
+            return;
+          }
+          const timer = window.setTimeout(() => {
+            const i = waiters.indexOf(finish);
+            if (i >= 0) waiters.splice(i, 1);
+            reject(new Error(`No reply to ${text}`));
+          }, timeoutMs);
+          const finish = (msg: string) => {
+            window.clearTimeout(timer);
+            resolve(msg);
+          };
+          waiters.push(finish);
+          const payload = new TextEncoder().encode(`${text}\r`);
+          const send = write.properties.write
+            ? write.writeValue(payload)
+            : write.writeValueWithoutResponse(payload);
+          send.catch((err: unknown) => {
+            window.clearTimeout(timer);
+            const i = waiters.indexOf(finish);
+            if (i >= 0) waiters.splice(i, 1);
+            reject(err instanceof Error ? err : new Error(String(err)));
+          });
+        }),
+    );
+    chain = run.then(
+      () => undefined,
+      () => undefined,
+    );
+    return run;
+  };
+
+  const onGone = () => {
+    stopped = true;
+  };
+  device.addEventListener("gattserverdisconnected", onGone);
+
+  return {
+    name: device.name ?? "OBD",
+    close: () => {
+      stopped = true;
+      device.removeEventListener("gattserverdisconnected", onGone);
+      notifyChar?.removeEventListener("characteristicvaluechanged", onValue);
+      device.gatt?.disconnect();
+    },
+    loop: async (onReading, onLog) => {
+      const init = [
+        ["ATZ", 5000],
+        ["ATE0", 2000],
+        ["ATL0", 1500],
+        ["ATS0", 1500],
+        ["ATH0", 1500],
+        ["ATSP0", 2000],
+      ] as const;
+      for (const [cmd, ms] of init) {
+        const msg = await command(cmd, ms);
+        onLog(`${cmd} → ${msg.replace(/\s+/g, " ").slice(0, 96) || "(empty)"}`);
+      }
+      let i = 0;
+      let misses = 0;
+      while (!stopped) {
+        const cmd = CYCLE[i % CYCLE.length]!;
+        i += 1;
+        try {
+          const msg = await command(cmd, 1800);
+          const line = msg.replace(/\s+/g, " ").slice(0, 96);
+          onLog(`${cmd} → ${line || "(empty)"}`);
+          const parsed = parsePid(cmd, msg);
+          if (parsed) {
+            misses = 0;
+            onReading(parsed);
+          } else if (/NO DATA|UNABLE|ERROR|STOPPED|\?/i.test(msg)) {
+            misses += 1;
+            if (misses >= 6) onLog("ECU not answering. Ignition on? Adapter plugged in?");
+          }
+        } catch (error) {
+          if (stopped) return;
+          misses += 1;
+          onLog(error instanceof Error ? error.message : String(error));
+        }
+      }
+    },
+  };
+}

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AETHER</string>
+    <string name="limits">This app cannot start a Wi-Fi hotspot and cannot open a satellite modem. Android reserves both for the system and your carrier. It measures the uplink the phone already has and puts speed plus that path on the Android Auto screen.</string>
+</resources>
